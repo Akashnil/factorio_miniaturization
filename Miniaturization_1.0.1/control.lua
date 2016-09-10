@@ -29,7 +29,9 @@ function CreateItem(event)
 		local entity = event.created_entity
 		global["Miniaturization_expanderlist"][entity.unit_number] = entity
 		global["Miniaturization_expander_state"][entity.unit_number] = {stop = false}
-		entity.set_filter(1, "compact-box")
+		if entity.filter_slot_count > 0 then
+			entity.set_filter(1, "compact-box")
+		end
 	end
 end
 
@@ -60,11 +62,14 @@ function PickUpItem(event)
 end
 
 function RunStep(event)
+	for _, p in pairs(game.players) do
+		p.force.inserter_stack_size_bonus = 0
+	end
 	for _, shrinker in pairs(global["Miniaturization_shrinkerlist"]) do
 		if shrinker.valid then
 			stack = shrinker.held_stack
 			state = global["Miniaturization_shrinker_state"][shrinker.unit_number]
-			if not stack.valid_for_read or stack.count == 0 then
+			if not stack.valid_for_read or stack.count == 0 and state.stop == false then
 				state.stop = false
 			end
 			if stack.valid_for_read and stack.count > 0 and state.stop == false then
@@ -97,8 +102,6 @@ function RunStep(event)
 					else
 						stack.clear()
 					end
-				else
-					state.stop = true
 				end
 			end
 		else
