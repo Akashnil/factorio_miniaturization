@@ -1,0 +1,9 @@
+{
+  "name": "Miniaturization",
+  "version": "1.0.1",
+  "title": "Miniaturization",
+  "author": "Neel",
+  "description": "Adds an inserter that compacts multiple items into one",
+  "factorio_version": "0.13.0",
+  "dependencies": ["base >= 0.13.0"]
+}
