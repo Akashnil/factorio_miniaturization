@@ -15,7 +15,7 @@ end
 function UpdateTechLevel(event)
 	if event.research.name == "miniaturization-research-2" then
 		global["Miniaturization_tech_level"] = 2
-	elseif event.research.name == "miniaturization-research-2" then
+	elseif event.research.name == "miniaturization-research-3" then
 		global["Miniaturization_tech_level"] = Miniaturization.config.max_level
 	end
 end
@@ -44,10 +44,9 @@ function health_to_id(health)
 end
 
 function PickUpItem(event)
-	inv = game.players[event.player_index].get_inventory(defines.inventory.player_main)
 	if event.entity.name == "shrinker" then
 		for id, count in pairs(global["Miniaturization_shrinker_state"][event.entity.unit_number]) do
-			if id ~= "stop" and count > 0 then
+			if id ~= "stop" and id ~= "pickup_position" and count > 0 then
 				local stack
 				item_data = global["Miniaturization_id_data"][id]
 				if item_data.level == 0 then
@@ -55,22 +54,30 @@ function PickUpItem(event)
 				else
 					stack = {name = "compact-box", count = count, health = id_to_health(id)}
 				end
-				inv.insert(stack)
+				
+				if event.player_index ~= nil then
+					inv = game.players[event.player_index].get_inventory(defines.inventory.player_quickbar) --player_main is the quickbar and player_quickbar is the main inventory - weird bug?
+					if inv.can_insert(stack) then
+						inv.insert(stack)
+					else
+						game.surfaces.nauvis.spill_item_stack(event.entity.position, stack) -- if full spill the items on the floor (same mechanism as picking up an item with a full inventory)
+					end
+				else
+					game.surfaces.nauvis.spill_item_stack(event.entity.position, stack) -- if robot spill the items on the floor
+				end
 			end
 		end
 	end
 end
 
 function RunStep(event)
-	for _, p in pairs(game.players) do
-		p.force.inserter_stack_size_bonus = 0
-	end
 	for _, shrinker in pairs(global["Miniaturization_shrinkerlist"]) do
 		if shrinker.valid then
 			stack = shrinker.held_stack
 			state = global["Miniaturization_shrinker_state"][shrinker.unit_number]
-			if not stack.valid_for_read or stack.count == 0 and state.stop == false then
+			if not stack.valid_for_read or stack.count == 0 and state.stop then
 				state.stop = false
+				shrinker.pickup_position = state.pickup_position
 			end
 			if stack.valid_for_read and stack.count > 0 and state.stop == false then
 				if stack.name ~= "compact-box" then
@@ -83,7 +90,7 @@ function RunStep(event)
 				end
 				id = health_to_id(stack.health)
 				current_data = global["Miniaturization_id_data"][id]
-				if current_data.level < Miniaturization.config.max_level and current_data.level < global["Miniaturization_tech_level"] then
+				if current_data.level < global["Miniaturization_tech_level"] then
 					if state[id] == nil then
 						state[id] = 0
 					end
@@ -99,6 +106,8 @@ function RunStep(event)
 						end
 						stack.set_stack({name = "compact-box", count = quantity, health = id_to_health(current_data.parent)})
 						state.stop = true
+						state.pickup_position = shrinker.pickup_position
+						shrinker.pickup_position = shrinker.position
 					else
 						stack.clear()
 					end
@@ -116,6 +125,7 @@ function RunStep(event)
 			state = global["Miniaturization_expander_state"][expander.unit_number]
 			if not stack.valid_for_read or stack.count == 0 then
 				state.stop = false
+				expander.pickup_position = state.pickup_position
 			end
 			if stack.valid_for_read and stack.count > 0 and state.stop == false and stack.name == "compact-box" then
 				item_data = global["Miniaturization_id_data"][health_to_id(stack.health)]
@@ -125,6 +135,8 @@ function RunStep(event)
 					stack.set_stack({name = "compact-box", count = stack.count * Miniaturization.config.box_size, health = id_to_health(item_data.child)})
 				end
 				state.stop = true
+				state.pickup_position = expander.pickup_position
+				expander.pickup_position = expander.position
 			end
 		else
 			global["Miniaturization_expanderlist"][_] = nil

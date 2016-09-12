@@ -28,7 +28,7 @@ data:extend({
     name = "miniaturization-research-2",
     icon = "__Miniaturization__/graphics/technology/miniaturization-2.png",
     effects = {},
-    prerequisites = {"miniaturization-research", "advanced-electronics-2", "logistics-2"},
+    prerequisites = {"miniaturization-research", "advanced-electronics", "logistics-2"},
     unit =
     {
       count = 200,
