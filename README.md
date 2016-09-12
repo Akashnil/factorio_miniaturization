@@ -13,3 +13,17 @@ The assembling process can be composed in a hierarchy, which has additional tech
 The last tech level allows infinite throughput at great cost.
 
 This mod is highly recommended to use with Factorrissimo Mod for truly infinite scaling factories without clutter.
+
+
+Changelog:
+
+v1.0.2
+
+Features:
+- Smaller item icon to fit better with other icon sizes.
+- Animation change of the inserters
+
+Bugfixes:
+- No longer removes the regular-inserter stack-size bonuses. (save games with the old version active may still be broken)
+- Correctly waiting for tech level 3 before enabling infinite stacking
+- Items no longer disappear from the internal cache when picked up by player or robot. May spill on floor if no space.
