@@ -27,3 +27,5 @@ Bugfixes:
 - No longer removes the regular-inserter stack-size bonuses. (save games with the old version active may still be broken)
 - Correctly waiting for tech level 3 before enabling infinite stacking
 - Items no longer disappear from the internal cache when picked up by player or robot. May spill on floor if no space.
+
+Credit: Prototype for helping with bugfixing.
